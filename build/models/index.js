@@ -4,6 +4,7 @@ exports.db = void 0;
 const sequelize_1 = require("sequelize");
 require("dotenv/config");
 const users_1 = require("./users");
+const files_1 = require("./files");
 const dbName = "filez";
 const username = "root";
 const password = "0624";
@@ -16,4 +17,6 @@ const sequelize = new sequelize_1.Sequelize(dbName, username, password, {
     dialect: 'mysql'
 });
 (0, users_1.userFactory)(sequelize);
+(0, files_1.fileFactory)(sequelize);
+(0, files_1.AssociateUserFile)();
 exports.db = sequelize;

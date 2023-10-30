@@ -1,6 +1,7 @@
 import { Sequelize } from "sequelize";
 import 'dotenv/config';
 import { userFactory } from "./users";
+import { AssociateUserFile, fileFactory } from "./files";
 
 const dbName = "filez"
 const username = "root"
@@ -17,5 +18,8 @@ const sequelize = new Sequelize(dbName, username, password, {
 });
 
 userFactory(sequelize)
+fileFactory(sequelize)
+
+AssociateUserFile()
 
 export const db = sequelize;

@@ -44,5 +44,3 @@ export function userFactory(sequelize: Sequelize) {
             collate: 'utf8_general_ci',
         })
 }
-
-

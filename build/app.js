@@ -6,9 +6,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const morgan_1 = __importDefault(require("morgan"));
 const multer_1 = __importDefault(require("multer"));
-const path_1 = __importDefault(require("path"));
 const models_1 = require("./models");
-// import locationRoutes from './routes/locationRoutes'
+const userRoutes_1 = __importDefault(require("./routes/userRoutes"));
 const app = (0, express_1.default)();
 app.use((0, morgan_1.default)('dev'));
 app.use(express_1.default.json());
@@ -17,20 +16,20 @@ app.use(express_1.default.static('uploads'));
 // incoming requests
 const cors = require('cors');
 app.use(cors());
-const uploadDirectory = path_1.default.join(__dirname, 'uploads');
 const storage = multer_1.default.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, uploadDirectory); // Use the absolute path
+        cb(null, 'uploads'); // Uploads will be stored in the 'uploads' directory
     },
     filename: (req, file, cb) => {
-        const extension = path_1.default.extname(file.originalname);
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9) + extension;
-        cb(null, uniqueSuffix); // Rename the file to include a unique suffix
+        const uniqueSuffix = `${Date.now()}-${file.originalname}`;
+        console.log(uniqueSuffix);
+        cb(null, uniqueSuffix); // Use a timestamp + extension as the filename
     },
 });
 const upload = (0, multer_1.default)({ storage: storage });
 app.get('/uploads/:filename', (req, res) => {
     const filename = req.params.filename;
+    console.log(filename);
     res.sendFile(filename, { root: 'uploads' }, (err) => {
         if (err) {
             console.error(err);
@@ -38,17 +37,16 @@ app.get('/uploads/:filename', (req, res) => {
         }
     });
 });
-app.post("/api/upload", upload.any(), async (req, res) => {
-    console.log(req.body);
+app.post("/api/upload", upload.single('file'), async (req, res) => {
     try {
         // let user: User | null = await verifyUser(req);
         // if (!user) {
         //   return res.status(403).send();
         // }
-        if (!req.file) {
+        if (!req.body) {
             return res.status(400).json({ error: "No file uploaded." });
         }
-        const downloadURL = `/uploads/`;
+        const downloadURL = `/uploads/${req.file?.filename}`;
         res.status(200).json({ downloadURL });
     }
     catch (error) {
@@ -56,6 +54,7 @@ app.post("/api/upload", upload.any(), async (req, res) => {
         res.status(500).json({ error: "Image upload failed." });
     }
 });
+app.use("/api/user", userRoutes_1.default);
 app.use((req, res, next) => {
     res.status(404).send("error");
 });

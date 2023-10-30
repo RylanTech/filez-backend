@@ -4,8 +4,7 @@ import multer from 'multer';
 import path from 'path';
 import { verifyUser } from './services/authService';
 import { db } from './models';
-import { User } from './models/users';
-// import locationRoutes from './routes/locationRoutes'
+import userRoutes from './routes/userRoutes'
 
 const app = express();
 
@@ -18,24 +17,22 @@ app.use(express.static('uploads'))
 const cors = require('cors');
 app.use(cors());
 
-const uploadDirectory = path.join(__dirname, 'uploads');
-
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, uploadDirectory); // Use the absolute path
+    cb(null, 'uploads'); // Uploads will be stored in the 'uploads' directory
   },
   filename: (req, file, cb) => {
-    const extension = path.extname(file.originalname);
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9) + extension;
-    cb(null, uniqueSuffix); // Rename the file to include a unique suffix
+    const uniqueSuffix = `${Date.now()}-${file.originalname}`;
+    console.log(uniqueSuffix)
+    cb(null, uniqueSuffix); // Use a timestamp + extension as the filename
   },
 });
 const upload = multer({ storage: storage });
 
-
  
 app.get('/uploads/:filename', (req, res) => {
   const filename = req.params.filename;
+  console.log(filename)
   res.sendFile(filename, { root: 'uploads' }, (err) => {
     if (err) {
       console.error(err);
@@ -44,19 +41,18 @@ app.get('/uploads/:filename', (req, res) => {
   });
 });
 
-app.post("/api/upload", upload.any(), async (req, res) => {
-  console.log(req.body)
+app.post("/api/upload", upload.single('file'), async (req, res) => {
   try {
     // let user: User | null = await verifyUser(req);
     // if (!user) {
     //   return res.status(403).send();
     // }
 
-    if (!req.file) {
+    if (!req.body) {
       return res.status(400).json({ error: "No file uploaded." });
     }
 
-    const downloadURL = `/uploads/`;
+    const downloadURL = `/uploads/${req.file?.filename}`;
 
     res.status(200).json({ downloadURL });
   } catch (error) {
@@ -64,6 +60,8 @@ app.post("/api/upload", upload.any(), async (req, res) => {
     res.status(500).json({ error: "Image upload failed." });
   }
 });
+
+app.use("/api/user", userRoutes)
 
 app.use(( req: Request, res: Response, next: NextFunction ) => {
   res.status(404).send("error");
