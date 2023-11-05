@@ -8,7 +8,7 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const users_1 = require("../models/users");
 const secret = 'blah blah blah files';
 const signUserToken = async (user) => {
-    let token = jsonwebtoken_1.default.sign({ userId: user.userId }, secret, { expiresIn: '1hr' });
+    let token = jsonwebtoken_1.default.sign({ userId: user.userId }, secret, { expiresIn: '30d' });
     return token;
 };
 exports.signUserToken = signUserToken;

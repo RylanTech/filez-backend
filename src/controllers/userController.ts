@@ -6,7 +6,6 @@ import {
   verifyUser,
   verifyToken,
 } from "../services/authService";
-import { Op } from "sequelize";
 
 export const allUser: RequestHandler = async (req, res, next) => {
   let users = await User.findAll();
@@ -14,37 +13,11 @@ export const allUser: RequestHandler = async (req, res, next) => {
 };
 
 export const createUser: RequestHandler = async (req, res, next) => {
-//   let user = await verifyUser(req);
-  
-//   if (user) {
-//     if (user.userType !== "admin") {
-//       return res.status(403).send("Not an Admin");
-//     };
-
-//     let newUser: User = req.body;
-
-//     if (newUser.email && newUser.password && newUser.name && newUser.userType) {
-//       // hashPass will go here
-//       let hashedPassword = await hashPassword(newUser.password);
-//       newUser.password = hashedPassword;
-  
-//       let create = await User.create(newUser);
-//       res.status(200).json({
-//         email: create.email,
-//         userId: create.userId,
-//       });
-//     } else {
-//       res.status(400).send("Missing feilds");
-//     }
-
-//   } else {
-//     res.status(401).send("Not Authurized")
-//   }
 let newUser: User = req.body;
 
 if (newUser.email && newUser.password && newUser.name) {
     newUser.userType = 'admin'
-    // hashPass will go here
+    
     let hashedPassword = await hashPassword(newUser.password);
     newUser.password = hashedPassword;
 
@@ -57,7 +30,15 @@ if (newUser.email && newUser.password && newUser.name) {
     res.status(400).send("Missing feilds");
   }
 };
+//         userId: create.userId,
+//       });
+//     } else {
+//       res.status(400).send("Missing feilds");
+//     }
 
+//   } else {
+//     res.status(401).send("Not Authurized")
+//   }
 export const signInUser: RequestHandler = async (req, res, next) => {
   let validUser: User | null = await User.findOne({
     where: { email: req.body.email },

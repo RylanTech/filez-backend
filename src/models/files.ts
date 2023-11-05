@@ -5,6 +5,10 @@ import { User } from "./users";
 export class File extends Model<InferAttributes<File>, InferCreationAttributes<File>>{
     declare fileId: number;
     declare name: string;
+    declare path: string;
+    declare description: string;
+    declare size: string;
+    declare uploadDate: Date;
     declare userId: number;
 }
 
@@ -20,9 +24,22 @@ export function fileFactory(sequelize: Sequelize) {
             type: DataTypes.STRING,
             allowNull: false,
         },
+        path: {
+            type: DataTypes.STRING,
+            allowNull: false
+        },
+        description: {
+            type: DataTypes.TEXT,
+        },
+        uploadDate: {
+            type: DataTypes.DATE,
+        },
+        size: {
+            type: DataTypes.STRING,
+            allowNull: false
+        },
         userId: {
             type: DataTypes.INTEGER,
-
         }
     },
         {

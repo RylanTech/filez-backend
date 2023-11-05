@@ -18,6 +18,20 @@ function fileFactory(sequelize) {
             type: sequelize_1.DataTypes.STRING,
             allowNull: false,
         },
+        path: {
+            type: sequelize_1.DataTypes.STRING,
+            allowNull: false
+        },
+        description: {
+            type: sequelize_1.DataTypes.TEXT,
+        },
+        uploadDate: {
+            type: sequelize_1.DataTypes.DATE,
+        },
+        size: {
+            type: sequelize_1.DataTypes.STRING,
+            allowNull: false
+        },
         userId: {
             type: sequelize_1.DataTypes.INTEGER,
         }
