@@ -3,10 +3,6 @@ import { verifyUser } from "../services/authService";
 import { File } from "../models/files";
 const fs = require('fs');
 
-export const getOneFileDetails: RequestHandler = async (req, res, next) => {
-
-};
-
 export const getFileDetails: RequestHandler = async (req, res, next) => {
     let user = await verifyUser(req);
     if (user) {
@@ -19,10 +15,6 @@ export const getFileDetails: RequestHandler = async (req, res, next) => {
     } else {
         res.status(401).send()
     }
-};
-
-export const getAllFileDetails: RequestHandler = async (req, res, next) => {
-
 };
 
 export const deleteArray: RequestHandler = async (req, res, next) => {

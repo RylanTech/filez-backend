@@ -1,6 +1,6 @@
 import express, { NextFunction, Request, Response } from 'express';
 import morgan from 'morgan';
-import multer from 'multer';
+import multer, { diskStorage } from 'multer';
 import { verifyUser } from './services/authService';
 import { db } from './models';
 import userRoutes from './routes/userRoutes'
@@ -8,6 +8,7 @@ import { User } from './models/users';
 import { File } from './models/files';
 import fileRoutes from './routes/fileRoutes'
 
+const path = require('path');
 const fs = require("fs")
 
 const app = express();
@@ -18,6 +19,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static('uploads'))
 const bodyParser = require('body-parser');
 app.use(bodyParser.json());
+const uploadsDirectory = path.join(__dirname, 'uploads');
 
 // incoming requests
 const cors = require('cors');
@@ -33,6 +35,7 @@ const storage = multer.diskStorage({
   },
 });
 const upload = multer({ storage: storage });
+const storageDestination = 'uploads';
 
  
 app.get('/uploads/:filename', (req, res) => {
@@ -43,6 +46,25 @@ app.get('/uploads/:filename', (req, res) => {
       res.status(404).send('File not found');
     }
   });
+});
+
+app.get('/download/:filename', (req, res) => {
+  const filename = req.params.filename;
+  const filePath = path.join(storageDestination, filename);
+
+  // Check if the file exists
+  if (fs.existsSync(filePath)) {
+    // Send the file for download
+    res.download(filePath, filename, (err) => {
+      if (err) {
+        console.error(err);
+        res.status(500).send('Internal Server Error');
+      }
+    });
+  } else {
+    // File not found
+    res.status(404).send('File not found');
+  }
 });
 
 app.post("/api/upload", upload.single('file'), async (req, res) => {
@@ -74,7 +96,7 @@ app.post("/api/upload", upload.single('file'), async (req, res) => {
 
     const fileInfo: any = {
       name: fileName,
-      path: downloadURL,
+      path: req.file.filename,
       description: fileDes,
       uploadDate: Date.now(),
       size: size,
@@ -108,4 +130,7 @@ db.sync({ alter:false }).then(() => {
 });
 
 //for deployment change to 3000
-app.listen(3001);
+const server = app.listen(3001, () => {
+  server.timeout = 240000; // 4 minutes
+  console.log("Running")
+});

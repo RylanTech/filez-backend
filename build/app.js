@@ -11,6 +11,7 @@ const models_1 = require("./models");
 const userRoutes_1 = __importDefault(require("./routes/userRoutes"));
 const files_1 = require("./models/files");
 const fileRoutes_1 = __importDefault(require("./routes/fileRoutes"));
+const path = require('path');
 const fs = require("fs");
 const app = (0, express_1.default)();
 app.use((0, morgan_1.default)('dev'));
@@ -19,6 +20,7 @@ app.use(express_1.default.urlencoded({ extended: true }));
 app.use(express_1.default.static('uploads'));
 const bodyParser = require('body-parser');
 app.use(bodyParser.json());
+const uploadsDirectory = path.join(__dirname, 'uploads');
 // incoming requests
 const cors = require('cors');
 app.use(cors());
@@ -32,6 +34,7 @@ const storage = multer_1.default.diskStorage({
     },
 });
 const upload = (0, multer_1.default)({ storage: storage });
+const storageDestination = 'uploads';
 app.get('/uploads/:filename', (req, res) => {
     const filename = req.params.filename;
     res.sendFile(filename, { root: 'uploads' }, (err) => {
@@ -40,6 +43,24 @@ app.get('/uploads/:filename', (req, res) => {
             res.status(404).send('File not found');
         }
     });
+});
+app.get('/download/:filename', (req, res) => {
+    const filename = req.params.filename;
+    const filePath = path.join(storageDestination, filename);
+    // Check if the file exists
+    if (fs.existsSync(filePath)) {
+        // Send the file for download
+        res.download(filePath, filename, (err) => {
+            if (err) {
+                console.error(err);
+                res.status(500).send('Internal Server Error');
+            }
+        });
+    }
+    else {
+        // File not found
+        res.status(404).send('File not found');
+    }
 });
 app.post("/api/upload", upload.single('file'), async (req, res) => {
     const fileName = req.body.filename;
@@ -62,7 +83,7 @@ app.post("/api/upload", upload.single('file'), async (req, res) => {
         console.log(fileName);
         const fileInfo = {
             name: fileName,
-            path: downloadURL,
+            path: req.file.filename,
             description: fileDes,
             uploadDate: Date.now(),
             size: size,
@@ -92,4 +113,7 @@ models_1.db.sync({ alter: false }).then(() => {
     console.info("Connected to the database!");
 });
 //for deployment change to 3000
-app.listen(3001);
+const server = app.listen(3001, () => {
+    server.timeout = 120000; // Set the timeout to 2 minutes (or adjust as needed)
+    console.log("Running");
+});
