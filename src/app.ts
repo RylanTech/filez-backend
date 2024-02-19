@@ -92,7 +92,6 @@ app.post("/api/upload", upload.single('file'), async (req, res) => {
       fileDes = null
     }
 
-    console.log(fileName)
 
     const fileInfo: any = {
       name: fileName,
@@ -107,7 +106,6 @@ app.post("/api/upload", upload.single('file'), async (req, res) => {
       const object = await File.create(fileInfo)
       res.status(200).json(object);
     } catch (error) {
-      console.log(error)
       res.status(500).send(error)
     }
   } catch (error) {
@@ -131,6 +129,6 @@ db.sync({ alter:false }).then(() => {
 
 //for deployment change to 3000
 const server = app.listen(3001, () => {
-  server.timeout = 240000; // 4 minutes
-  console.log("Running")
+  server.timeout = 600000; // 10 minutes
+  console.log("Running - 10 minute max upload")
 });

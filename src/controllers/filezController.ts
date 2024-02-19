@@ -1,7 +1,9 @@
 import { RequestHandler } from "express";
 import { verifyUser } from "../services/authService";
 import { File } from "../models/files";
+import { promisify } from "util";
 const fs = require('fs');
+import path from 'path';
 
 export const getFileDetails: RequestHandler = async (req, res, next) => {
     let user = await verifyUser(req);
@@ -21,29 +23,43 @@ export const deleteArray: RequestHandler = async (req, res, next) => {
     try {
         let user = await verifyUser(req);
 
-        //Does the user exist? if yes contiune
+        // Does the user exist? If yes, continue
         if (!user) {
             return res.status(403).send("No user signed in");
         }
 
-        let reqDelArr = req.body
+        let reqDelArr = req.body;
 
-        reqDelArr.map(async (id: number) => {
-            let file = await File.findByPk(id)
+        // Use Promise.all to wait for all asynchronous operations to complete
+        await Promise.all(reqDelArr.map(async (id: number) => {
+            let file = await File.findByPk(id);
+            console.log(file);
 
             if (file) {
-                let filePath = file.path
-                fs.unlink(filePath, () => {
-                    console.log(`File deleted successfully.`);
-                });
-                File.destroy({where: {fileId: id}})
+                let filePath = file.path;
+                
+                // Log the absolute path
+                const parsedPath = path.parse(path.resolve(filePath));
+                filePath = path.join(parsedPath.root, parsedPath.dir, 'uploads', parsedPath.base);
+                console.log(parsedPath)
+
+                // Check if the file exists before attempting to delete it
+                if (fs.existsSync(filePath)) {
+                    // Promisify the fs.unlink operation
+                    const unlinkAsync = promisify(fs.unlink);
+                    await unlinkAsync(filePath);
+                }
+
+                await File.destroy({ where: { fileId: id } });
             } else {
-                File.destroy({where: {fileId: id}})
+                await File.destroy({ where: { fileId: id } });
             }
-        })
-        res.status(200).json({ message: 'File deleted successfully' });
+        }));
+
+        res.status(200).json({ message: 'Files deleted successfully' });
 
     } catch (error) {
-        res.status(500).send(error)
+        console.error(error);
+        res.status(500).send(error);
     }
 };
